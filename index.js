@@ -85,19 +85,31 @@ app.get('/tags/:iDs', async (req,res) => {
     res.send(products);
 });
 
-async function dataGetter() {
-    const iDs = "javascript react"
+app.get('/search/:iDs', async (req,res) => {
+    const {iDs} = req.params || "";
     console.log(iDs);
     let products;
     if(iDs != ""){
-        products = await Tags.find({$text: {$search: `${iDs}`}}, { score: { $meta: "textScore" } });
+        products = await Search.find({$text: {$search: `${iDs}`}}, { score: { $meta: "textScore" } });
     }else{
-        products = await Tags.find({});
+        products = Search.find({});
     }
-    console.log(products);
-}
+    res.send(products);
+});
 
-dataGetter();
+// async function dataGetter() {
+//     const iDs = "javascript react"
+//     console.log(iDs);
+//     let products;
+//     if(iDs != ""){
+//         products = await Tags.find({$text: {$search: `${iDs}`}}, { score: { $meta: "textScore" } });
+//     }else{
+//         products = await Tags.find({});
+//     }
+//     console.log(products);
+// }
+
+// dataGetter();
 
 app.listen(process.env.port, () => {
     console.log(`Server Listening on Port ${process.env.port}`);
