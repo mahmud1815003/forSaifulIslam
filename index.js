@@ -2,7 +2,8 @@ const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const { productSchema } = require('./product');
+const { TagsSchema } = require('./tags');
+const {SearchSchema} = require('./search');
 const axios = require('axios');
 dotenv.config();
 
@@ -16,7 +17,8 @@ mongoose.connect(process.env.data_base_url, {
     console.log('Connection Error ' + err);
 });
 
-const Product = new mongoose.model('Products', productSchema);
+const Tags = new mongoose.model('lwsTags', TagsSchema);
+const Search = new mongoose.model('lwsSearch', SearchSchema);
 
 
 
@@ -31,7 +33,7 @@ app.get('/addData', async (req, res) => {
         const products = await axios.get('https://redux-filter.imsaifun.com/api/products');
         const productData = products.data;
         for (let pro of productData) {
-            const produtModel = new Product({
+            const tagsData = new Tags({
                 title: pro.title,
                 description: pro.description,
                 author: pro.author,
@@ -45,7 +47,22 @@ app.get('/addData', async (req, res) => {
                 likes: pro.likes,
                 unlikes: pro.unlikes,
             });
-            await produtModel.save();
+            const searchData = new Search({
+                title: pro.title,
+                description: pro.description,
+                author: pro.author,
+                avatar: pro.avatar,
+                date: pro.date,
+                duration: pro.duration,
+                views: pro.views,
+                link: pro.link,
+                thumbnail: pro.thumbnail,
+                tags: pro.tags.join(" "),
+                likes: pro.likes,
+                unlikes: pro.unlikes,
+            });
+            await tagsData.save();
+            await searchData.save();
         }
         res.send('Data Added');
     } catch(err) {
@@ -57,10 +74,30 @@ app.get('/addData', async (req, res) => {
 //hit this port like "http://localhost:5000/tags/tailwindccs javascript" then you receive the 
 //json response
 app.get('/tags/:iDs', async (req,res) => {
-    const {iDs} = req.params;
-    const products = await Product.find({$text: {$search: `${iDs}`}}, { score: { $meta: "textScore" } });
+    const {iDs} = req.params || "";
+    console.log(iDs);
+    let products;
+    if(iDs != ""){
+        products = await Tags.find({$text: {$search: `${iDs}`}}, { score: { $meta: "textScore" } });
+    }else{
+        products = Tags.find({});
+    }
     res.send(products);
-})
+});
+
+async function dataGetter() {
+    const iDs = "javascript react"
+    console.log(iDs);
+    let products;
+    if(iDs != ""){
+        products = await Tags.find({$text: {$search: `${iDs}`}}, { score: { $meta: "textScore" } });
+    }else{
+        products = await Tags.find({});
+    }
+    console.log(products);
+}
+
+dataGetter();
 
 app.listen(process.env.port, () => {
     console.log(`Server Listening on Port ${process.env.port}`);

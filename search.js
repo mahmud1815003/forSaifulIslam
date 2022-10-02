@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 
-const ProductSchema = new mongoose.Schema(
+const SearchSchema = new mongoose.Schema(
     {
         title: {
             type: String,
@@ -43,8 +43,8 @@ const ProductSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-ProductSchema.index({tags: "text"});
+SearchSchema.index({title: "text" , description: "text", author: "text", tags: "text"});
 
 module.exports = {
-    ProductSchema,
+    SearchSchema,
 }
